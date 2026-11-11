@@ -1,0 +1,1649 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>名筆 - 徒然草 珠玉の名段選（音声で味わう日本古典）</title>
+  
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;700&family=EB+Garamond:ital,wght@0,400..700;1,400..700&family=Noto+Serif+JP:wght@400;600;700&family=Zen+Kaku+Gothic+New:wght@400;500;700&display=swap" rel="stylesheet">
+
+  <style>
+    /* ==========================================================================
+       CSS変数 & ダークミニマルトーン（名筆統一仕様・和モダン）
+       ========================================================================== */
+    :root {
+      --bg-page: #0d0c0a;
+      --bg-card: #151310;
+      --bg-card-subtle: #1c1915;
+      --bg-hover: #26221d;
+      --border-color: rgba(212, 163, 89, 0.2);
+      --border-highlight: rgba(212, 163, 89, 0.45);
+      
+      --text-main: #f0eae1;
+      --text-muted: #968c7e;
+      --text-subtle: #6e6559;
+      --text-ja: #c8beaf;
+      --text-yomi: #a3937b;
+      
+      --accent: #d4a359;
+      --accent-glow: rgba(212, 163, 89, 0.25);
+      --accent-gold: #e5b342;
+      --accent-gold-bg: rgba(212, 163, 89, 0.12);
+      
+      --play-btn-bg: linear-gradient(135deg, #e5b342 0%, #b88228 100%);
+      --play-btn-shadow: 0 10px 28px -5px rgba(212, 163, 89, 0.4);
+      
+      --notes-bg: rgba(212, 163, 89, 0.08);
+      --notes-border: #d4a359;
+      
+      --font-serif: "Noto Serif JP", "Yu Mincho", "Hiragino Mincho ProN", serif;
+      --font-sans: "Zen Kaku Gothic New", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      --font-display: "Cinzel", "Noto Serif JP", serif;
+      
+      --radius-sm: 8px;
+      --radius-md: 14px;
+      --radius-lg: 20px;
+      --radius-pill: 9999px;
+    }
+
+    [data-theme="light"] {
+      --bg-page: #fbf9f5;
+      --bg-card: #ffffff;
+      --bg-card-subtle: #f4efe6;
+      --bg-hover: #ece5d8;
+      --border-color: #e5ded3;
+      --border-highlight: #d8cbb8;
+      --text-main: #1e2229;
+      --text-muted: #64748b;
+      --text-subtle: #94a3b8;
+      --text-ja: #475569;
+      --text-yomi: #8c7e6c;
+      --accent: #b45309;
+      --accent-glow: rgba(180, 83, 9, 0.15);
+      --accent-gold: #c28d22;
+      --accent-gold-bg: rgba(194, 141, 34, 0.12);
+      --play-btn-bg: linear-gradient(135deg, #c28d22 0%, #b45309 100%);
+      --play-btn-shadow: 0 10px 25px -5px rgba(180, 83, 9, 0.4);
+      --notes-bg: rgba(194, 141, 34, 0.08);
+      --notes-border: #d4a34b;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    body {
+      background-color: var(--bg-page);
+      color: var(--text-main);
+      font-family: var(--font-sans);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 16px 12px 64px 12px;
+      transition: background-color 0.3s ease, color 0.3s ease;
+      line-height: 1.6;
+    }
+
+    .app-container {
+      width: 100%;
+      max-width: 680px;
+      display: flex;
+      flex-direction: column;
+      gap: 18px;
+    }
+
+    /* ヘッダー */
+    .app-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 6px 4px 14px 4px;
+      border-bottom: 1px solid var(--border-color);
+    }
+
+    .brand {
+      display: flex;
+      align-items: baseline;
+      gap: 10px;
+    }
+
+    .brand-title {
+      font-family: var(--font-display);
+      font-size: 24px;
+      font-weight: 700;
+      letter-spacing: 0.12em;
+      color: var(--accent);
+    }
+
+    .brand-sub {
+      font-size: 11px;
+      color: var(--text-muted);
+      letter-spacing: 0.06em;
+    }
+
+    .header-controls {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .icon-btn {
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      color: var(--text-muted);
+      padding: 6px 12px;
+      border-radius: var(--radius-pill);
+      font-size: 12px;
+      font-family: var(--font-sans);
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      transition: all 0.2s ease;
+    }
+
+    .icon-btn:hover {
+      background: var(--bg-hover);
+      color: var(--accent);
+      border-color: var(--accent);
+    }
+
+    .icon-btn.primary {
+      background: var(--accent-gold-bg);
+      border-color: var(--accent);
+      color: var(--accent);
+      font-weight: 700;
+    }
+
+    /* メインプレーヤーカード */
+    .player-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-lg);
+      padding: 24px 20px;
+      box-shadow: 0 16px 40px -10px rgba(0, 0, 0, 0.4);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 20px;
+      position: relative;
+    }
+
+    /* 作品情報見出し */
+    .section-meta {
+      text-align: center;
+      width: 100%;
+    }
+
+    .meta-badges {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      margin-bottom: 8px;
+      flex-wrap: wrap;
+    }
+
+    .no-badge {
+      font-family: var(--font-display);
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--accent);
+      letter-spacing: 0.1em;
+      background: var(--accent-gold-bg);
+      padding: 3px 10px;
+      border-radius: var(--radius-pill);
+      border: 1px solid var(--border-color);
+    }
+
+    .season-badge {
+      font-size: 11px;
+      color: var(--text-main);
+      background: var(--bg-card-subtle);
+      padding: 3px 9px;
+      border-radius: var(--radius-pill);
+      border: 1px solid var(--border-color);
+    }
+
+    .audio-badge {
+      font-size: 11px;
+      color: var(--accent);
+      background: var(--accent-gold-bg);
+      padding: 3px 10px;
+      border-radius: var(--radius-pill);
+      border: 1px solid var(--border-color);
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+    }
+
+    .section-title {
+      font-family: var(--font-serif);
+      font-size: 23px;
+      font-weight: 700;
+      letter-spacing: 0.04em;
+      color: var(--text-main);
+      margin-bottom: 4px;
+    }
+
+    .section-heading {
+      font-size: 14px;
+      color: var(--accent);
+      letter-spacing: 0.04em;
+      font-weight: 500;
+    }
+
+    /* ヒーロー再生ボタン */
+    .hero-play-section {
+      position: relative;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 8px 0;
+    }
+
+    .hero-play-btn {
+      width: 76px;
+      height: 76px;
+      border-radius: 50%;
+      background: var(--play-btn-bg);
+      border: none;
+      color: #0d0c0a;
+      box-shadow: var(--play-btn-shadow);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      position: relative;
+      z-index: 2;
+      transition: transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275), box-shadow 0.2s;
+    }
+
+    .hero-play-btn:hover {
+      transform: scale(1.06);
+    }
+
+    .hero-play-btn:active {
+      transform: scale(0.96);
+    }
+
+    .hero-play-btn svg {
+      width: 32px;
+      height: 32px;
+      fill: currentColor;
+    }
+
+    .play-btn-pulse {
+      position: absolute;
+      width: 76px;
+      height: 76px;
+      border-radius: 50%;
+      background: var(--accent);
+      opacity: 0;
+      z-index: 1;
+      pointer-events: none;
+    }
+
+    .playing .play-btn-pulse {
+      animation: ripple 2s cubic-bezier(0, 0.2, 0.8, 1) infinite;
+    }
+
+    @keyframes ripple {
+      0% { transform: scale(1); opacity: 0.45; }
+      100% { transform: scale(1.6); opacity: 0; }
+    }
+
+    .playing .play-icon { display: none; }
+    .playing .pause-icon { display: block; }
+    .play-icon { display: block; }
+    .pause-icon { display: none; }
+
+    /* 前へ・次へ・ランダム コントロール */
+    .player-controls {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 16px;
+      width: 100%;
+    }
+
+    .ctrl-btn {
+      background: var(--bg-card-subtle);
+      border: 1px solid var(--border-color);
+      color: var(--text-muted);
+      width: 44px;
+      height: 44px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .ctrl-btn:hover {
+      background: var(--bg-hover);
+      color: var(--accent);
+      border-color: var(--accent);
+      transform: translateY(-1px);
+    }
+
+    .ctrl-btn svg {
+      width: 20px;
+      height: 20px;
+      fill: currentColor;
+    }
+
+    /* シーク・進行プログレスバー */
+    .seek-container {
+      width: 100%;
+      padding: 0 4px;
+    }
+
+    .seek-slider-wrap {
+      position: relative;
+      width: 100%;
+      height: 6px;
+      background: var(--bg-card-subtle);
+      border-radius: 3px;
+      cursor: pointer;
+      overflow: hidden;
+    }
+
+    .seek-progress-bar {
+      position: absolute;
+      top: 0;
+      left: 0;
+      height: 100%;
+      width: 0%;
+      background: var(--accent);
+      border-radius: 3px;
+      transition: width 0.15s linear;
+    }
+
+    .seek-time-row {
+      display: flex;
+      justify-content: space-between;
+      margin-top: 6px;
+      font-size: 11px;
+      color: var(--text-subtle);
+      font-family: var(--font-display);
+    }
+
+    /* サブコントロールバー */
+    .sub-controls {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      flex-wrap: wrap;
+      width: 100%;
+      padding-top: 4px;
+      border-top: 1px solid var(--border-color);
+    }
+
+    .pill-btn {
+      background: var(--bg-card-subtle);
+      border: 1px solid var(--border-color);
+      color: var(--text-muted);
+      padding: 6px 12px;
+      border-radius: var(--radius-pill);
+      font-size: 12px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      font-family: var(--font-sans);
+    }
+
+    .pill-btn:hover {
+      background: var(--bg-hover);
+      color: var(--text-main);
+      border-color: var(--border-highlight);
+    }
+
+    .pill-btn.active {
+      background: var(--accent-gold-bg);
+      border-color: var(--accent);
+      color: var(--accent);
+      font-weight: 700;
+    }
+
+    /* 再生モードステータス帯 */
+    .playback-status-banner {
+      width: 100%;
+      box-sizing: border-box;
+      font-size: 11.5px;
+      line-height: 1.5;
+      text-align: center;
+      color: var(--text-subtle);
+      background: rgba(212, 163, 89, 0.05);
+      border: 1px dashed rgba(212, 163, 89, 0.25);
+      border-radius: var(--radius-sm);
+      padding: 7px 12px;
+      transition: all 0.2s ease;
+    }
+
+    /* 目録を開くクイックバナー */
+    .index-trigger-bar {
+      width: 100%;
+      background: rgba(212, 163, 89, 0.08);
+      border: 1px solid rgba(212, 163, 89, 0.25);
+      border-radius: var(--radius-md);
+      padding: 11px 16px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      cursor: pointer;
+      color: var(--accent);
+      font-size: 13px;
+      font-weight: 700;
+      transition: all 0.2s ease;
+    }
+
+    .index-trigger-bar:hover {
+      background: rgba(212, 163, 89, 0.16);
+      border-color: var(--accent);
+      transform: translateY(-1px);
+    }
+
+    /* 本文表示エリア */
+    .section-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-lg);
+      padding: 30px 24px;
+      box-shadow: 0 8px 30px -10px rgba(0, 0, 0, 0.3);
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+
+    .section-lines {
+      display: flex;
+      flex-direction: column;
+      gap: 18px;
+    }
+
+    .line-block {
+      padding: 14px 16px;
+      border-radius: var(--radius-md);
+      transition: all 0.25s ease;
+      cursor: pointer;
+      border-left: 3px solid transparent;
+    }
+
+    .line-block:hover {
+      background: var(--bg-hover);
+    }
+
+    .line-block.speaking {
+      background: var(--accent-gold-bg);
+      border-left-color: var(--accent);
+      padding-left: 18px;
+    }
+
+    .line-original {
+      font-family: var(--font-serif);
+      font-size: 19.5px;
+      line-height: 1.8;
+      color: var(--text-main);
+      letter-spacing: 0.03em;
+    }
+
+    .line-yomi {
+      font-size: 12.5px;
+      color: var(--text-yomi);
+      margin-top: 4px;
+      line-height: 1.5;
+      display: none;
+    }
+
+    .line-ja {
+      font-size: 14px;
+      line-height: 1.75;
+      color: var(--text-ja);
+      margin-top: 8px;
+      padding-top: 6px;
+      border-top: 1px dashed rgba(212, 163, 89, 0.15);
+      font-weight: 400;
+      display: none;
+    }
+
+    /* 読み表示制御 */
+    [data-yomi-mode="show"] .line-yomi {
+      display: block;
+    }
+
+    /* 現代語訳表示制御 */
+    [data-trans-mode="all"] .line-ja {
+      display: block;
+    }
+
+    [data-trans-mode="tap"] .line-block.show-ja .line-ja {
+      display: block;
+    }
+
+    [data-trans-mode="none"] .line-ja {
+      display: none !important;
+    }
+
+    /* 由来・解説（NOTES）カード */
+    .notes-box {
+      margin-top: 10px;
+      background: var(--notes-bg);
+      border: 1px solid var(--notes-border);
+      border-radius: var(--radius-md);
+      padding: 18px 20px;
+      position: relative;
+    }
+
+    .notes-badge {
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--accent);
+      letter-spacing: 0.1em;
+      margin-bottom: 6px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .notes-text {
+      font-size: 13.5px;
+      color: var(--text-main);
+      line-height: 1.75;
+    }
+
+    /* ==========================================================================
+       作品目録（インデックス・ドロワー）
+       ========================================================================== */
+    .index-drawer-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.7);
+      backdrop-filter: blur(4px);
+      z-index: 999;
+      opacity: 0;
+      visibility: hidden;
+      transition: all 0.3s ease;
+    }
+
+    .index-drawer-overlay.open {
+      opacity: 1;
+      visibility: visible;
+    }
+
+    .index-drawer {
+      position: fixed;
+      top: 0;
+      right: 0;
+      bottom: 0;
+      width: 100%;
+      max-width: 480px;
+      background: var(--bg-card);
+      border-left: 1px solid var(--border-color);
+      box-shadow: -10px 0 40px rgba(0, 0, 0, 0.6);
+      z-index: 1000;
+      display: flex;
+      flex-direction: column;
+      transform: translateX(100%);
+      transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    .index-drawer-overlay.open .index-drawer {
+      transform: translateX(0);
+    }
+
+    .drawer-header {
+      padding: 18px 20px;
+      border-bottom: 1px solid var(--border-color);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .drawer-title {
+      font-size: 17px;
+      font-weight: 700;
+      color: var(--text-main);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .drawer-title span {
+      font-size: 12px;
+      color: var(--accent);
+      font-family: var(--font-display);
+    }
+
+    .drawer-close-btn {
+      background: transparent;
+      border: none;
+      color: var(--text-muted);
+      font-size: 22px;
+      cursor: pointer;
+      padding: 4px;
+      line-height: 1;
+    }
+
+    .drawer-close-btn:hover {
+      color: var(--text-main);
+    }
+
+    .drawer-search-wrap {
+      padding: 12px 20px;
+      border-bottom: 1px solid var(--border-color);
+      background: var(--bg-card-subtle);
+    }
+
+    .drawer-search-input {
+      width: 100%;
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-sm);
+      padding: 10px 14px;
+      font-size: 13px;
+      color: var(--text-main);
+      outline: none;
+      font-family: var(--font-sans);
+    }
+
+    .drawer-search-input:focus {
+      border-color: var(--accent);
+    }
+
+    .drawer-list {
+      flex: 1;
+      overflow-y: auto;
+      padding: 10px 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .index-item {
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
+      padding: 12px 14px;
+      border-radius: var(--radius-md);
+      background: var(--bg-card-subtle);
+      border: 1px solid transparent;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .index-item:hover {
+      background: var(--bg-hover);
+      border-color: var(--border-color);
+    }
+
+    .index-item.current {
+      background: var(--accent-gold-bg);
+      border-color: var(--accent);
+    }
+
+    .index-no {
+      font-family: var(--font-display);
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--accent);
+      min-width: 32px;
+      padding-top: 1px;
+    }
+
+    .index-item-content {
+      flex: 1;
+    }
+
+    .index-item-title {
+      font-size: 14px;
+      font-weight: 700;
+      color: var(--text-main);
+      margin-bottom: 2px;
+      font-family: var(--font-serif);
+    }
+
+    .index-item-heading {
+      font-size: 12px;
+      color: var(--accent);
+      margin-bottom: 4px;
+    }
+
+    .index-item-desc {
+      font-size: 11px;
+      color: var(--text-subtle);
+      line-height: 1.4;
+    }
+
+    .index-item-season {
+      font-size: 10px;
+      padding: 2px 6px;
+      border-radius: 4px;
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      color: var(--text-muted);
+      white-space: nowrap;
+    }
+
+    /* フッタークレジット */
+    .app-footer {
+      text-align: center;
+      padding: 20px 0;
+      font-size: 11px;
+      color: var(--text-subtle);
+      border-top: 1px solid var(--border-color);
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .app-footer a {
+      color: var(--accent);
+      text-decoration: none;
+    }
+
+    /* スクロールバー */
+    ::-webkit-scrollbar {
+      width: 6px;
+    }
+    ::-webkit-scrollbar-track {
+      background: transparent;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: rgba(212, 163, 89, 0.2);
+      border-radius: 3px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: rgba(212, 163, 89, 0.4);
+    }
+  </style>
+</head>
+<body data-trans-mode="tap" data-yomi-mode="hide">
+
+  <div class="app-container">
+
+    <!-- ヘッダー -->
+    <header class="app-header">
+      <div class="brand">
+        <span class="brand-title">名筆</span>
+        <span class="brand-sub">徒然草 珠玉の10選</span>
+      </div>
+      <div class="header-controls">
+        <button id="openIndexBtn" class="icon-btn primary" title="作品目録（インデックス）を開く">
+          <span>≡</span> 目録 (10)
+        </button>
+        <button id="themeToggleBtn" class="icon-btn" title="テーマ切替">
+          <span id="themeIcon">☀️</span>
+        </button>
+      </div>
+    </header>
+
+    <!-- メインプレーヤーカード -->
+    <div class="player-card" id="playerCard">
+      
+      <!-- 作品情報見出し -->
+      <div class="section-meta">
+        <div class="meta-badges">
+          <span class="no-badge" id="sectionNo">序段</span>
+          <span class="season-badge" id="seasonBadge">通年</span>
+          <span class="audio-badge" id="audioStageBadge">🎙 原文朗読</span>
+          <span class="audio-badge" id="todayBadge" style="display:none; color:var(--accent);">★ 今日の1段</span>
+        </div>
+        <h1 class="section-title" id="sectionTitle">つれづれなるままに</h1>
+        <div class="section-heading" id="sectionHeading">心に浮かぶよしなしごと</div>
+      </div>
+
+      <!-- ヒーロー再生ボタン -->
+      <div class="hero-play-section">
+        <div class="play-btn-pulse"></div>
+        <button id="playBtn" class="hero-play-btn" title="再生 / 一時停止 (Space)">
+          <!-- Play Icon -->
+          <svg class="play-icon" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+          <!-- Pause Icon -->
+          <svg class="pause-icon" viewBox="0 0 24 24"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></svg>
+        </button>
+      </div>
+
+      <!-- 前へ・次へ コントロール -->
+      <div class="player-controls">
+        <button id="prevBtn" class="ctrl-btn" title="前の段 (←)">
+          <svg viewBox="0 0 24 24"><path d="M6 6h2v12H6zm3.5 6l8.5 6V6z"/></svg>
+        </button>
+        <button id="randomBtn" class="ctrl-btn" title="ランダム選出">
+          <svg viewBox="0 0 24 24"><path d="M10.59 9.17L5.41 4 4 5.41l5.17 5.17 1.42-1.41zM14.5 4l2.04 2.04L4 18.59 5.41 20 17.96 7.46 20 9.5V4h-5.5zm.33 9.41l-1.41 1.41 3.13 3.13L14.5 20H20v-5.5l-2.04 2.04-3.13-3.13z"/></svg>
+        </button>
+        <button id="nextBtn" class="ctrl-btn" title="次の段 (→)">
+          <svg viewBox="0 0 24 24"><path d="M6 18l8.5-6L6 6v12zM16 6v12h2V6h-2z"/></svg>
+        </button>
+      </div>
+
+      <!-- 進行プログレスバー -->
+      <div class="seek-container" id="seekContainer">
+        <div id="seekSliderWrap" class="seek-slider-wrap" title="再生位置の調整">
+          <div id="seekProgressBar" class="seek-progress-bar"></div>
+        </div>
+        <div class="seek-time-row">
+          <span id="currentTimeLabel">0:00</span>
+          <span id="totalTimeLabel">0:00</span>
+        </div>
+      </div>
+
+      <!-- サブコントロールバー -->
+      <div class="sub-controls">
+        <button id="playModeBtn" class="pill-btn active" title="音声再生モード切替">再生: 原文 ➔ 訳</button>
+        <button id="contModeBtn" class="pill-btn active">連続: 順番</button>
+        <button id="speedBtn" class="pill-btn">速度: 1.0x</button>
+        <button id="yomiToggleBtn" class="pill-btn">読み: 非表示</button>
+        <button id="transModeBtn" class="pill-btn">訳: タップ表示</button>
+        <button id="timerBtn" class="pill-btn">タイマー: 切</button>
+      </div>
+
+      <!-- 再生ステータス案内 -->
+      <div class="playback-status-banner" id="statusBanner">
+        ※ 音声：VOICEVOX / 各行をタップするとその行だけを個別に確認できます
+      </div>
+
+      <!-- 目録への直行バナー -->
+      <div class="index-trigger-bar" id="bottomIndexTrigger">
+        <span>📚 全10段の目録（インデックス）から選ぶ</span>
+        <span>一覧を見る →</span>
+      </div>
+
+    </div>
+
+    <!-- 段テキストカード -->
+    <div class="section-card">
+      <div class="section-lines" id="sectionLinesContainer">
+        <!-- JSで1文ずつ生成 -->
+      </div>
+
+      <!-- 由来・解説（NOTES）カード -->
+      <div class="notes-box" id="notesBox">
+        <div class="notes-badge">✦ 現代に通じる兼好の智恵・鑑賞ポイント</div>
+        <div class="notes-text" id="notesText"></div>
+      </div>
+    </div>
+
+    <!-- フッター -->
+    <footer class="app-footer">
+      <div>名筆（MEIHITSU）— 音声で味わう日本古典コレクション</div>
+      <div>原文：パブリックドメイン（校註日本文学大系・国文大観等照合） ｜ 音声：VOICEVOX ｜ 訳：名筆オリジナル現代語訳</div>
+      <div style="font-size: 10.5px; opacity: 0.85; margin-top: 2px;">※ 原文の読み・表記は伝承刊本により異同があります。</div>
+    </footer>
+
+  </div>
+
+  <!-- 作品目録（インデックス・ドロワー） -->
+  <div class="index-drawer-overlay" id="drawerOverlay">
+    <div class="index-drawer">
+      <div class="drawer-header">
+        <div class="drawer-title">
+          作品目録 <span>INDEX (10)</span>
+        </div>
+        <button class="drawer-close-btn" id="closeDrawerBtn">✕</button>
+      </div>
+      <div class="drawer-search-wrap">
+        <input type="text" id="drawerSearchInput" class="drawer-search-input" placeholder="🔍 段番号・見出し・原文・訳文で検索...">
+      </div>
+      <div class="drawer-list" id="drawerList">
+        <!-- JSで段一覧を生成 -->
+      </div>
+    </div>
+  </div>
+
+  <!-- データ読み込み -->
+  <script src="data/tsurezuregusa.js"></script>
+
+  <script>
+    (function() {
+      // 1. データ取得
+      const dataset = window.TSUREZUREGUSA_DATA || {};
+      const works = dataset.works || [];
+      const totalWorks = works.length;
+      if (totalWorks === 0) {
+        console.error("Tsurezuregusa data not loaded.");
+        return;
+      }
+
+      // 2. 状態管理
+      let currentIndex = 0;
+      let isPlaying = false;
+      let currentLineIndex = -1;
+      let playSeqMode = "both"; // "both" (原文➔訳) | "original" (原文のみ) | "translation" (訳のみ)
+      let currentStage = "original"; // "original" | "translation"
+      let continuousMode = "seq"; // "seq" | "shuffle" | "off"
+      let speedRate = 1.0;
+      let timerMinutes = 0;
+      let timerRemainingSec = 0;
+      let timerInterval = null;
+      let transMode = "tap"; // "none" | "tap" | "all"
+      let showYomi = false;
+
+      // 音声オブジェクト
+      let audioObj = null;
+      const synth = window.speechSynthesis;
+      let speechSessionId = 0;
+
+      // 3. 要素取得
+      const playerCard = document.getElementById("playerCard");
+      const sectionNo = document.getElementById("sectionNo");
+      const seasonBadge = document.getElementById("seasonBadge");
+      const audioStageBadge = document.getElementById("audioStageBadge");
+      const todayBadge = document.getElementById("todayBadge");
+      const sectionTitle = document.getElementById("sectionTitle");
+      const sectionHeading = document.getElementById("sectionHeading");
+      const playBtn = document.getElementById("playBtn");
+      const prevBtn = document.getElementById("prevBtn");
+      const nextBtn = document.getElementById("nextBtn");
+      const randomBtn = document.getElementById("randomBtn");
+      const seekSliderWrap = document.getElementById("seekSliderWrap");
+      const seekProgressBar = document.getElementById("seekProgressBar");
+      const currentTimeLabel = document.getElementById("currentTimeLabel");
+      const totalTimeLabel = document.getElementById("totalTimeLabel");
+      const playModeBtn = document.getElementById("playModeBtn");
+      const contModeBtn = document.getElementById("contModeBtn");
+      const speedBtn = document.getElementById("speedBtn");
+      const yomiToggleBtn = document.getElementById("yomiToggleBtn");
+      const transModeBtn = document.getElementById("transModeBtn");
+      const timerBtn = document.getElementById("timerBtn");
+      const statusBanner = document.getElementById("statusBanner");
+      const sectionLinesContainer = document.getElementById("sectionLinesContainer");
+      const notesText = document.getElementById("notesText");
+
+      // 目録ドロワー関連
+      const openIndexBtn = document.getElementById("openIndexBtn");
+      const bottomIndexTrigger = document.getElementById("bottomIndexTrigger");
+      const closeDrawerBtn = document.getElementById("closeDrawerBtn");
+      const drawerOverlay = document.getElementById("drawerOverlay");
+      const drawerSearchInput = document.getElementById("drawerSearchInput");
+      const drawerList = document.getElementById("drawerList");
+
+      // テーマ切替
+      const themeToggleBtn = document.getElementById("themeToggleBtn");
+      const themeIcon = document.getElementById("themeIcon");
+
+      // 4. 今日の1段の決定（季節バイアス付き決定論的選定）
+      const today = new Date();
+      const currentMonth = today.getMonth() + 1; // 1-12
+      let targetSeason = "通年";
+      if (currentMonth >= 3 && currentMonth <= 5) targetSeason = "春";
+      else if (currentMonth >= 6 && currentMonth <= 8) targetSeason = "夏";
+      else if (currentMonth >= 9 && currentMonth <= 11) targetSeason = "秋";
+      else targetSeason = "冬";
+
+      const todayStr = today.toISOString().slice(0, 10);
+      let daySeed = 0;
+      for (let i = 0; i < todayStr.length; i++) {
+        daySeed = (daySeed * 31 + todayStr.charCodeAt(i)) & 0xffffffff;
+      }
+      
+      // 季節一致段を優先して今日の一段を決定
+      const seasonalWorks = works.filter(w => (w.season || "").includes(targetSeason));
+      let todayWorkIndex = 0;
+      if (seasonalWorks.length > 0 && Math.abs(daySeed % 10) < 7) {
+        const picked = seasonalWorks[Math.abs(daySeed) % seasonalWorks.length];
+        todayWorkIndex = works.indexOf(picked);
+      } else {
+        todayWorkIndex = Math.abs(daySeed) % totalWorks;
+      }
+
+      // 5. 設定の復元
+      try {
+        const savedTrans = localStorage.getItem("meihitsu_tz_trans");
+        if (savedTrans) transMode = savedTrans;
+        const savedYomi = localStorage.getItem("meihitsu_tz_yomi");
+        if (savedYomi) showYomi = (savedYomi === "true");
+        const savedSpeed = localStorage.getItem("meihitsu_tz_speed");
+        if (savedSpeed) speedRate = parseFloat(savedSpeed);
+        const savedCont = localStorage.getItem("meihitsu_tz_cont");
+        if (savedCont) continuousMode = savedCont;
+        const savedPlaySeq = localStorage.getItem("meihitsu_tz_playseq");
+        if (savedPlaySeq) playSeqMode = savedPlaySeq;
+        const savedTheme = localStorage.getItem("meihitsu_tz_theme");
+        if (savedTheme) {
+          document.body.setAttribute("data-theme", savedTheme);
+          themeIcon.textContent = savedTheme === "light" ? "🌙" : "☀️";
+        }
+      } catch(e) {}
+
+      applyTransModeUI();
+      applyYomiModeUI();
+      applyContModeUI();
+      applyPlaySeqUI();
+      applySpeedUI();
+
+      // 6. 作品描画
+      function loadWork(idx, autoPlay = false) {
+        stopAllAudio();
+        currentIndex = idx;
+        currentLineIndex = -1;
+        currentStage = (playSeqMode === "translation") ? "translation" : "original";
+
+        const work = works[currentIndex];
+
+        // メタ情報
+        sectionNo.textContent = (work.no === 0) ? "序段" : `第 ${work.no} 段`;
+        sectionTitle.textContent = work.title_ja;
+        sectionHeading.textContent = work.heading || "";
+        seasonBadge.textContent = work.season || "通年";
+        notesText.textContent = work.notes || "";
+
+        todayBadge.style.display = (currentIndex === todayWorkIndex) ? "inline-block" : "none";
+
+        updateStageBadge();
+
+        // プログレスバー初期化
+        seekProgressBar.style.width = "0%";
+        currentTimeLabel.textContent = "0:00";
+        totalTimeLabel.textContent = getExpectedDuration();
+
+        // 本文描画
+        sectionLinesContainer.innerHTML = "";
+        work.lines.forEach((line, lIdx) => {
+          const div = document.createElement("div");
+          div.className = "line-block";
+          div.id = `line-${lIdx}`;
+          div.innerHTML = `
+            <div class="line-original">${escapeHtml(line.text)}</div>
+            <div class="line-yomi">${escapeHtml(line.yomi || "")}</div>
+            <div class="line-ja">${escapeHtml(line.ja || "")}</div>
+          `;
+          div.addEventListener("click", () => {
+            if (transMode === "tap") {
+              div.classList.toggle("show-ja");
+            }
+            // タップでその行の個別発音確認
+            playSingleLine(lIdx);
+          });
+          sectionLinesContainer.appendChild(div);
+        });
+
+        updateDrawerActiveItem();
+        updateMediaSession(work);
+
+        if (autoPlay) {
+          startPlayback();
+        }
+      }
+
+      function updateStageBadge() {
+        if (currentStage === "original") {
+          audioStageBadge.textContent = "🎙 原文朗読";
+          audioStageBadge.style.borderColor = "var(--border-color)";
+        } else {
+          audioStageBadge.textContent = "📖 ざっくり訳";
+          audioStageBadge.style.borderColor = "var(--accent)";
+        }
+      }
+
+      function getExpectedDuration() {
+        const work = works[currentIndex];
+        if (!work.audio) return "0:45";
+        const target = (currentStage === "original") ? work.audio.original : work.audio.translation;
+        return (target && target.duration && target.duration !== "0:00") ? target.duration : "0:45";
+      }
+
+      // 7. 再生制御
+      function startPlayback() {
+        isPlaying = true;
+        playerCard.classList.add("playing");
+        playCurrentStage();
+      }
+
+      function playCurrentStage() {
+        const work = works[currentIndex];
+        updateStageBadge();
+        
+        let audioInfo = null;
+        if (work.audio) {
+          audioInfo = (currentStage === "original") ? work.audio.original : work.audio.translation;
+        }
+
+        const audioUrl = (audioInfo && audioInfo.url) ? audioInfo.url : null;
+        
+        // ローカルファイル再生を試行
+        if (audioUrl) {
+          playAudioFile(audioUrl, () => {
+            // ファイルが存在しない・再生エラー時のWeb Speech APIフォールバック
+            console.log("Audio file fallback to Web Speech API");
+            playStageWithWebSpeech();
+          });
+        } else {
+          playStageWithWebSpeech();
+        }
+      }
+
+      function playAudioFile(url, onErrorFallback) {
+        if (synth) synth.cancel();
+        clearLineHighlight();
+
+        if (audioObj) {
+          audioObj.pause();
+          audioObj = null;
+        }
+
+        audioObj = new Audio(url);
+        audioObj.playbackRate = speedRate;
+
+        audioObj.onloadedmetadata = () => {
+          if (audioObj && audioObj.duration) {
+            totalTimeLabel.textContent = formatTime(audioObj.duration);
+          }
+        };
+
+        audioObj.ontimeupdate = () => {
+          if (!audioObj || !isPlaying) return;
+          const cur = audioObj.currentTime || 0;
+          const dur = audioObj.duration || 1;
+          seekProgressBar.style.width = `${Math.min(100, (cur / dur) * 100)}%`;
+          currentTimeLabel.textContent = formatTime(cur);
+
+          // 行ハイライトの推定連動
+          const work = works[currentIndex];
+          if (work.lines && work.lines.length > 0 && dur > 0) {
+            const lineProgress = Math.min(work.lines.length - 1, Math.floor((cur / dur) * work.lines.length));
+            if (lineProgress !== currentLineIndex) {
+              currentLineIndex = lineProgress;
+              highlightLine(currentLineIndex);
+            }
+          }
+        };
+
+        audioObj.onended = () => {
+          onStageFinished();
+        };
+
+        audioObj.onerror = (e) => {
+          console.warn("Audio file load error:", url, e);
+          if (onErrorFallback) onErrorFallback();
+        };
+
+        const playPromise = audioObj.play();
+        if (playPromise !== undefined) {
+          playPromise.catch(err => {
+            console.warn("Audio play prevented:", err);
+            if (onErrorFallback) onErrorFallback();
+          });
+        }
+      }
+
+      // Web Speech API フォールバック（1行ずつ朗読）
+      function playStageWithWebSpeech() {
+        if (!synth) {
+          onStageFinished();
+          return;
+        }
+        speechSessionId++;
+        const thisSession = speechSessionId;
+        const work = works[currentIndex];
+
+        const textLines = (currentStage === "original") 
+          ? work.lines.map(l => l.yomi || l.text)
+          : work.lines.map(l => l.ja || l.text);
+
+        let lineIdx = (currentLineIndex >= 0 && currentLineIndex < textLines.length) ? currentLineIndex : 0;
+
+        function speakLine(idx) {
+          if (!isPlaying || thisSession !== speechSessionId || idx >= textLines.length) {
+            if (idx >= textLines.length) onStageFinished();
+            return;
+          }
+
+          currentLineIndex = idx;
+          highlightLine(idx);
+
+          // プログレスバー更新
+          const pct = ((idx + 1) / textLines.length) * 100;
+          seekProgressBar.style.width = `${pct}%`;
+          currentTimeLabel.textContent = `${idx + 1} / ${textLines.length} 行`;
+
+          const utterance = new SpeechSynthesisUtterance(textLines[idx]);
+          utterance.lang = "ja-JP";
+          utterance.rate = (currentStage === "original") ? speedRate * 0.9 : speedRate;
+          utterance.pitch = 1.0;
+
+          utterance.onend = () => {
+            if (!isPlaying || thisSession !== speechSessionId) return;
+            setTimeout(() => speakLine(idx + 1), 250);
+          };
+
+          utterance.onerror = (e) => {
+            if (e.error === "canceled" || e.error === "interrupted") return;
+            if (isPlaying && thisSession === speechSessionId) {
+              speakLine(idx + 1);
+            }
+          };
+
+          synth.speak(utterance);
+        }
+
+        speakLine(lineIdx);
+      }
+
+      // 単一行の個別タップ再生
+      function playSingleLine(lIdx) {
+        if (!synth) return;
+        if (audioObj) audioObj.pause();
+        synth.cancel();
+
+        speechSessionId++;
+        isPlaying = true;
+        playerCard.classList.add("playing");
+        highlightLine(lIdx);
+
+        const work = works[currentIndex];
+        const line = work.lines[lIdx];
+        const textToSpeak = line.yomi || line.text;
+
+        const utterance = new SpeechSynthesisUtterance(textToSpeak);
+        utterance.lang = "ja-JP";
+        utterance.rate = speedRate * 0.95;
+
+        utterance.onend = () => {
+          playerCard.classList.remove("playing");
+          isPlaying = false;
+        };
+
+        synth.speak(utterance);
+      }
+
+      // 1つのステージ（原文または訳）が終了したときの制御
+      function onStageFinished() {
+        if (playSeqMode === "both" && currentStage === "original") {
+          // 「原文 ➔ 訳」モードで原文が終わったら、小休止して訳を再生
+          currentStage = "translation";
+          currentLineIndex = -1;
+          setTimeout(() => {
+            if (isPlaying) playCurrentStage();
+          }, 400);
+          return;
+        }
+
+        // 次の段への進行
+        stopAllAudio();
+
+        if (continuousMode === "seq") {
+          loadWork((currentIndex + 1) % totalWorks, true);
+        } else if (continuousMode === "shuffle") {
+          let nextIdx;
+          do {
+            nextIdx = Math.floor(Math.random() * totalWorks);
+          } while (nextIdx === currentIndex && totalWorks > 1);
+          loadWork(nextIdx, true);
+        } else {
+          // 1段停止
+          currentLineIndex = -1;
+          seekProgressBar.style.width = "100%";
+        }
+      }
+
+      function pausePlayback() {
+        isPlaying = false;
+        speechSessionId++;
+        playerCard.classList.remove("playing");
+        if (audioObj) audioObj.pause();
+        if (synth) synth.cancel();
+      }
+
+      function stopAllAudio() {
+        isPlaying = false;
+        speechSessionId++;
+        playerCard.classList.remove("playing");
+        if (audioObj) {
+          audioObj.pause();
+          audioObj = null;
+        }
+        if (synth) synth.cancel();
+        clearLineHighlight();
+      }
+
+      function highlightLine(idx) {
+        clearLineHighlight();
+        const el = document.getElementById(`line-${idx}`);
+        if (el) {
+          el.classList.add("speaking");
+          el.scrollIntoView({ behavior: "smooth", block: "nearest" });
+        }
+      }
+
+      function clearLineHighlight() {
+        const lines = sectionLinesContainer.querySelectorAll(".line-block");
+        lines.forEach(l => l.classList.remove("speaking"));
+      }
+
+      function formatTime(sec) {
+        if (isNaN(sec)) return "0:00";
+        const m = Math.floor(sec / 60);
+        const s = Math.floor(sec % 60);
+        return `${m}:${String(s).padStart(2, "0")}`;
+      }
+
+      // 8. イベントリスナー
+
+      // ヒーロー再生ボタン
+      playBtn.addEventListener("click", () => {
+        if (isPlaying) pausePlayback();
+        else startPlayback();
+      });
+
+      // 前・次・ランダム
+      prevBtn.addEventListener("click", () => {
+        const prevIdx = (currentIndex - 1 + totalWorks) % totalWorks;
+        loadWork(prevIdx, isPlaying);
+      });
+
+      nextBtn.addEventListener("click", () => {
+        const nextIdx = (currentIndex + 1) % totalWorks;
+        loadWork(nextIdx, isPlaying);
+      });
+
+      randomBtn.addEventListener("click", () => {
+        let randIdx;
+        do {
+          randIdx = Math.floor(Math.random() * totalWorks);
+        } while (randIdx === currentIndex && totalWorks > 1);
+        loadWork(randIdx, isPlaying);
+      });
+
+      // シークバー操作
+      seekSliderWrap.addEventListener("click", (e) => {
+        if (audioObj && audioObj.duration) {
+          const rect = seekSliderWrap.getBoundingClientRect();
+          const clickRatio = Math.max(0, Math.min(1, (e.clientX - rect.left) / rect.width));
+          audioObj.currentTime = clickRatio * audioObj.duration;
+          if (!isPlaying) startPlayback();
+        }
+      });
+
+      // 再生シーケンス切替（原文➔訳 / 原文のみ / 訳のみ）
+      playModeBtn.addEventListener("click", () => {
+        if (playSeqMode === "both") playSeqMode = "original";
+        else if (playSeqMode === "original") playSeqMode = "translation";
+        else playSeqMode = "both";
+        
+        applyPlaySeqUI();
+        try { localStorage.setItem("meihitsu_tz_playseq", playSeqMode); } catch(e) {}
+        
+        if (isPlaying) {
+          stopAllAudio();
+          startPlayback();
+        }
+      });
+
+      function applyPlaySeqUI() {
+        if (playSeqMode === "both") {
+          playModeBtn.textContent = "再生: 原文 ➔ 訳";
+          playModeBtn.className = "pill-btn active";
+          currentStage = "original";
+        } else if (playSeqMode === "original") {
+          playModeBtn.textContent = "再生: 原文のみ";
+          playModeBtn.className = "pill-btn";
+          currentStage = "original";
+        } else {
+          playModeBtn.textContent = "再生: 訳のみ";
+          playModeBtn.className = "pill-btn";
+          currentStage = "translation";
+        }
+        updateStageBadge();
+      }
+
+      // 連続再生モード切替
+      contModeBtn.addEventListener("click", () => {
+        if (continuousMode === "seq") continuousMode = "shuffle";
+        else if (continuousMode === "shuffle") continuousMode = "off";
+        else continuousMode = "seq";
+        applyContModeUI();
+        try { localStorage.setItem("meihitsu_tz_cont", continuousMode); } catch(e) {}
+      });
+
+      function applyContModeUI() {
+        if (continuousMode === "seq") {
+          contModeBtn.textContent = "連続: 順番";
+          contModeBtn.className = "pill-btn active";
+        } else if (continuousMode === "shuffle") {
+          contModeBtn.textContent = "連続: シャッフル";
+          contModeBtn.className = "pill-btn active";
+        } else {
+          contModeBtn.textContent = "連続: 切";
+          contModeBtn.className = "pill-btn";
+        }
+      }
+
+      // 速度切替
+      speedBtn.addEventListener("click", () => {
+        const rates = [0.8, 0.9, 1.0, 1.2, 1.5];
+        const nextIdx = (rates.indexOf(speedRate) + 1) % rates.length;
+        speedRate = rates[nextIdx];
+        applySpeedUI();
+        try { localStorage.setItem("meihitsu_tz_speed", speedRate); } catch(e) {}
+        if (audioObj) audioObj.playbackRate = speedRate;
+      });
+
+      function applySpeedUI() {
+        speedBtn.textContent = `速度: ${speedRate.toFixed(1)}x`;
+      }
+
+      // 読み表記（yomi）切替
+      yomiToggleBtn.addEventListener("click", () => {
+        showYomi = !showYomi;
+        applyYomiModeUI();
+        try { localStorage.setItem("meihitsu_tz_yomi", showYomi); } catch(e) {}
+      });
+
+      function applyYomiModeUI() {
+        document.body.setAttribute("data-yomi-mode", showYomi ? "show" : "hide");
+        yomiToggleBtn.textContent = showYomi ? "読み: 表示中" : "読み: 非表示";
+        yomiToggleBtn.className = showYomi ? "pill-btn active" : "pill-btn";
+      }
+
+      // 現代語訳表示切替
+      transModeBtn.addEventListener("click", () => {
+        if (transMode === "tap") transMode = "all";
+        else if (transMode === "all") transMode = "none";
+        else transMode = "tap";
+        applyTransModeUI();
+        try { localStorage.setItem("meihitsu_tz_trans", transMode); } catch(e) {}
+      });
+
+      function applyTransModeUI() {
+        document.body.setAttribute("data-trans-mode", transMode);
+        if (transMode === "tap") {
+          transModeBtn.textContent = "訳: タップ表示";
+          transModeBtn.className = "pill-btn";
+        } else if (transMode === "all") {
+          transModeBtn.textContent = "訳: 常時表示";
+          transModeBtn.className = "pill-btn active";
+        } else {
+          transModeBtn.textContent = "訳: 非表示";
+          transModeBtn.className = "pill-btn";
+        }
+      }
+
+      // タイマー切替
+      timerBtn.addEventListener("click", () => {
+        const timerOptions = [0, 15, 30, 45, 60];
+        const nextIdx = (timerOptions.indexOf(timerMinutes) + 1) % timerOptions.length;
+        timerMinutes = timerOptions[nextIdx];
+        applyTimerUI();
+      });
+
+      function applyTimerUI() {
+        if (timerInterval) clearInterval(timerInterval);
+        if (timerMinutes === 0) {
+          timerBtn.textContent = "タイマー: 切";
+          timerBtn.className = "pill-btn";
+        } else {
+          timerRemainingSec = timerMinutes * 60;
+          timerBtn.textContent = `タイマー: ${timerMinutes}分`;
+          timerBtn.className = "pill-btn active";
+          timerInterval = setInterval(() => {
+            timerRemainingSec--;
+            if (timerRemainingSec <= 0) {
+              clearInterval(timerInterval);
+              timerInterval = null;
+              timerMinutes = 0;
+              timerBtn.textContent = "タイマー: 切";
+              timerBtn.className = "pill-btn";
+              pausePlayback();
+            } else {
+              const m = Math.ceil(timerRemainingSec / 60);
+              timerBtn.textContent = `タイマー: ${m}分`;
+            }
+          }, 1000);
+        }
+      }
+
+      // テーマ切替
+      themeToggleBtn.addEventListener("click", () => {
+        const curTheme = document.body.getAttribute("data-theme") || "dark";
+        const newTheme = curTheme === "dark" ? "light" : "dark";
+        document.body.setAttribute("data-theme", newTheme);
+        themeIcon.textContent = newTheme === "light" ? "🌙" : "☀️";
+        try { localStorage.setItem("meihitsu_tz_theme", newTheme); } catch(e) {}
+      });
+
+      // 9. 目録（インデックス・ドロワー）制御
+      function openDrawer() {
+        drawerOverlay.classList.add("open");
+        drawerSearchInput.value = "";
+        renderDrawerList(works);
+        setTimeout(() => drawerSearchInput.focus(), 100);
+      }
+
+      function closeDrawer() {
+        drawerOverlay.classList.remove("open");
+      }
+
+      openIndexBtn.addEventListener("click", openDrawer);
+      bottomIndexTrigger.addEventListener("click", openDrawer);
+      closeDrawerBtn.addEventListener("click", closeDrawer);
+      drawerOverlay.addEventListener("click", (e) => {
+        if (e.target === drawerOverlay) closeDrawer();
+      });
+
+      function renderDrawerList(items) {
+        drawerList.innerHTML = "";
+        if (items.length === 0) {
+          drawerList.innerHTML = '<div style="text-align:center; padding:30px; color:var(--text-muted); font-size:13px;">該当する段が見つかりません</div>';
+          return;
+        }
+
+        items.forEach(w => {
+          const itemIdx = works.indexOf(w);
+          const div = document.createElement("div");
+          div.className = `index-item ${itemIdx === currentIndex ? "current" : ""}`;
+          div.id = `drawer-item-${itemIdx}`;
+          div.innerHTML = `
+            <div class="index-no">${w.no === 0 ? "序" : String(w.no).padStart(3, "0")}</div>
+            <div class="index-item-content">
+              <div class="index-item-title">${escapeHtml(w.title_ja)}</div>
+              <div class="index-item-heading">${escapeHtml(w.heading || "")}</div>
+              <div class="index-item-desc">${escapeHtml(w.notes || "")}</div>
+            </div>
+            <div class="index-item-season">${escapeHtml(w.season || "通年")}</div>
+          `;
+          div.addEventListener("click", () => {
+            closeDrawer();
+            loadWork(itemIdx, isPlaying);
+          });
+          drawerList.appendChild(div);
+        });
+
+        const activeItem = document.getElementById(`drawer-item-${currentIndex}`);
+        if (activeItem) {
+          activeItem.scrollIntoView({ block: "center" });
+        }
+      }
+
+      function updateDrawerActiveItem() {
+        const items = drawerList.querySelectorAll(".index-item");
+        items.forEach((item, idx) => {
+          if (idx === currentIndex) item.classList.add("current");
+          else item.classList.remove("current");
+        });
+      }
+
+      // 目録リアルタイム検索（段番号・見出し・原文・訳文・解説の全方位検索）
+      drawerSearchInput.addEventListener("input", (e) => {
+        const query = e.target.value.trim().toLowerCase();
+        if (!query) {
+          renderDrawerList(works);
+          return;
+        }
+        const filtered = works.filter(w => {
+          const linesCombined = (w.lines || []).map(l => `${l.text} ${l.yomi || ""} ${l.ja || ""}`).join(" ");
+          const searchStr = `${w.no} ${w.title_ja} ${w.heading || ""} ${w.season || ""} ${w.notes || ""} ${linesCombined}`.toLowerCase();
+          return searchStr.includes(query);
+        });
+        renderDrawerList(filtered);
+      });
+
+      // 10. キーボードショートカット
+      window.addEventListener("keydown", (e) => {
+        if (e.target.tagName === "INPUT") return;
+        if (e.code === "Space") {
+          e.preventDefault();
+          playBtn.click();
+        } else if (e.code === "ArrowLeft") {
+          e.preventDefault();
+          prevBtn.click();
+        } else if (e.code === "ArrowRight") {
+          e.preventDefault();
+          nextBtn.click();
+        } else if (e.key === "i" || e.key === "I" || e.key === "m" || e.key === "M") {
+          e.preventDefault();
+          if (drawerOverlay.classList.contains("open")) closeDrawer();
+          else openDrawer();
+        } else if (e.code === "Escape") {
+          if (drawerOverlay.classList.contains("open")) closeDrawer();
+        }
+      });
+
+      // 11. MediaSession API
+      function updateMediaSession(work) {
+        if ("mediaSession" in navigator) {
+          navigator.mediaSession.metadata = new MediaMetadata({
+            title: `${work.no === 0 ? "序段" : `第${work.no}段`} 『${work.title_ja}』`,
+            artist: "兼好法師（吉田兼好）",
+            album: "名筆 徒然草 珠玉の名段選"
+          });
+          navigator.mediaSession.setActionHandler("play", () => {
+            if (!isPlaying) startPlayback();
+          });
+          navigator.mediaSession.setActionHandler("pause", () => {
+            if (isPlaying) pausePlayback();
+          });
+          navigator.mediaSession.setActionHandler("previoustrack", () => {
+            prevBtn.click();
+          });
+          navigator.mediaSession.setActionHandler("nexttrack", () => {
+            nextBtn.click();
+          });
+        }
+      }
+
+      function escapeHtml(str) {
+        if (!str) return "";
+        return String(str)
+          .replace(/&/g, "&amp;")
+          .replace(/</g, "&lt;")
+          .replace(/>/g, "&gt;")
+          .replace(/"/g, "&quot;")
+          .replace(/'/g, "&#39;");
+      }
+
+      // 初期段の読み込み
+      loadWork(0, false);
+
+    })();
+  </script>
+</body>
+</html>
