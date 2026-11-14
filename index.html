@@ -201,6 +201,15 @@
       padding: 3px 10px;
       border-radius: var(--radius-pill);
       border: 1px solid var(--border-color);
+      transition: all 0.3s ease;
+    }
+
+    .section-no.announcing {
+      border-color: var(--accent);
+      color: #fff;
+      background: var(--accent-gold-bg);
+      box-shadow: 0 0 16px rgba(212, 163, 89, 0.45);
+      transform: scale(1.05);
     }
 
     .season-badge {
@@ -774,11 +783,11 @@
     <header class="app-header">
       <div class="brand">
         <span class="brand-title">名筆</span>
-        <span class="brand-sub">徒然草 珠玉の10選</span>
+        <span class="brand-sub">徒然草 全244段 完本</span>
       </div>
       <div class="header-controls">
         <button id="openIndexBtn" class="icon-btn primary" title="作品目録（インデックス）を開く">
-          <span>≡</span> 目録 (10)
+          <span>≡</span> 目録 (244)
         </button>
         <button id="themeToggleBtn" class="icon-btn" title="テーマ切替">
           <span id="themeIcon">☀️</span>
@@ -853,7 +862,7 @@
 
       <!-- 目録への直行バナー -->
       <div class="index-trigger-bar" id="bottomIndexTrigger">
-        <span>📚 全10段の目録（インデックス）から選ぶ</span>
+        <span>📚 全244段の目録（インデックス）から選ぶ</span>
         <span>一覧を見る →</span>
       </div>
 
@@ -886,7 +895,7 @@
     <div class="index-drawer">
       <div class="drawer-header">
         <div class="drawer-title">
-          作品目録 <span>INDEX (10)</span>
+          作品目録 <span id="drawerCount">INDEX (244)</span>
         </div>
         <button class="drawer-close-btn" id="closeDrawerBtn">✕</button>
       </div>
@@ -931,6 +940,7 @@
       let audioObj = null;
       const synth = window.speechSynthesis;
       let speechSessionId = 0;
+      let intermissionTimer = null;
 
       // 3. 要素取得
       const playerCard = document.getElementById("playerCard");
@@ -969,6 +979,13 @@
       // テーマ切替
       const themeToggleBtn = document.getElementById("themeToggleBtn");
       const themeIcon = document.getElementById("themeIcon");
+
+      // 目録カウントの動的同期
+      if (openIndexBtn) openIndexBtn.innerHTML = `<span>≡</span> 目録 (${totalWorks})`;
+      const drawerCountEl = document.getElementById("drawerCount");
+      if (drawerCountEl) drawerCountEl.textContent = `INDEX (${totalWorks})`;
+      const bottomTriggerSpan = bottomIndexTrigger ? bottomIndexTrigger.querySelector("span:first-child") : null;
+      if (bottomTriggerSpan) bottomTriggerSpan.textContent = `📚 全${totalWorks}段の目録（インデックス）から選ぶ`;
 
       // 4. 今日の1段の決定（季節バイアス付き決定論的選定）
       const today = new Date();
@@ -1146,13 +1163,24 @@
           seekProgressBar.style.width = `${Math.min(100, (cur / dur) * 100)}%`;
           currentTimeLabel.textContent = formatTime(cur);
 
-          // 行ハイライトの推定連動
+          // 行ハイライトの連動（冒頭の段数アナウンス時間約1.8秒を考慮）
           const work = works[currentIndex];
-          if (work.lines && work.lines.length > 0 && dur > 0) {
-            const lineProgress = Math.min(work.lines.length - 1, Math.floor((cur / dur) * work.lines.length));
-            if (lineProgress !== currentLineIndex) {
-              currentLineIndex = lineProgress;
-              highlightLine(currentLineIndex);
+          const announceLead = (currentStage === "original") ? 1.8 : 0;
+
+          if (cur < announceLead) {
+            sectionNo.classList.add("announcing");
+            clearLineHighlight();
+            currentLineIndex = -1;
+          } else {
+            sectionNo.classList.remove("announcing");
+            const adjustedCur = cur - announceLead;
+            const adjustedDur = Math.max(1, dur - announceLead);
+            if (work.lines && work.lines.length > 0 && adjustedDur > 0) {
+              const lineProgress = Math.min(work.lines.length - 1, Math.floor((adjustedCur / adjustedDur) * work.lines.length));
+              if (lineProgress !== currentLineIndex) {
+                currentLineIndex = lineProgress;
+                highlightLine(currentLineIndex);
+              }
             }
           }
         };
@@ -1189,6 +1217,13 @@
           ? work.lines.map(l => l.yomi || l.text)
           : work.lines.map(l => l.ja || l.text);
 
+        // 原文朗読の冒頭に段数を追加
+        const hasIntro = (currentStage === "original");
+        if (hasIntro) {
+          const introAnnounce = (work.no === 0) ? "じょだん。" : `だい${work.no}だん。`;
+          textLines.unshift(introAnnounce);
+        }
+
         let lineIdx = (currentLineIndex >= 0 && currentLineIndex < textLines.length) ? currentLineIndex : 0;
 
         function speakLine(idx) {
@@ -1198,7 +1233,14 @@
           }
 
           currentLineIndex = idx;
-          highlightLine(idx);
+          if (hasIntro && idx === 0) {
+            sectionNo.classList.add("announcing");
+            clearLineHighlight();
+          } else {
+            sectionNo.classList.remove("announcing");
+            const targetLineIdx = hasIntro ? idx - 1 : idx;
+            highlightLine(targetLineIdx);
+          }
 
           // プログレスバー更新
           const pct = ((idx + 1) / textLines.length) * 100;
@@ -1212,7 +1254,8 @@
 
           utterance.onend = () => {
             if (!isPlaying || thisSession !== speechSessionId) return;
-            setTimeout(() => speakLine(idx + 1), 250);
+            const pauseTime = (hasIntro && idx === 0) ? 800 : 250;
+            setTimeout(() => speakLine(idx + 1), pauseTime);
           };
 
           utterance.onerror = (e) => {
@@ -1257,45 +1300,79 @@
 
       // 1つのステージ（原文または訳）が終了したときの制御
       function onStageFinished() {
+        sectionNo.classList.remove("announcing");
+
         if (playSeqMode === "both" && currentStage === "original") {
-          // 「原文 ➔ 訳」モードで原文が終わったら、小休止して訳を再生
+          // 「原文 ➔ 訳」モードで原文が終わったら、一息置いて訳を再生
           currentStage = "translation";
           currentLineIndex = -1;
-          setTimeout(() => {
-            if (isPlaying) playCurrentStage();
-          }, 400);
+          clearLineHighlight();
+          statusBanner.textContent = "🎙 原文朗読終了 ➔ 一息置いて、ざっくり訳へ進みます...";
+
+          clearTimeout(intermissionTimer);
+          intermissionTimer = setTimeout(() => {
+            if (isPlaying) {
+              statusBanner.textContent = "※ 音声：VOICEVOX / 各行をタップするとその行だけを個別に確認できます";
+              playCurrentStage();
+            }
+          }, 900); // 0.9秒の一息
           return;
         }
 
-        // 次の段への進行
-        stopAllAudio();
-
-        if (continuousMode === "seq") {
-          loadWork((currentIndex + 1) % totalWorks, true);
-        } else if (continuousMode === "shuffle") {
+        // 1つの段（原文および訳）が全て終了
+        if (continuousMode === "seq" || continuousMode === "shuffle") {
           let nextIdx;
-          do {
-            nextIdx = Math.floor(Math.random() * totalWorks);
-          } while (nextIdx === currentIndex && totalWorks > 1);
-          loadWork(nextIdx, true);
-        } else {
-          // 1段停止
+          if (continuousMode === "seq") {
+            nextIdx = (currentIndex + 1) % totalWorks;
+          } else {
+            if (totalWorks <= 1) nextIdx = 0;
+            else {
+              do {
+                nextIdx = Math.floor(Math.random() * totalWorks);
+              } while (nextIdx === currentIndex);
+            }
+          }
+
           currentLineIndex = -1;
+          clearLineHighlight();
           seekProgressBar.style.width = "100%";
+          statusBanner.textContent = "🍃 一拍置いて、次の段へ進みます...";
+
+          clearTimeout(intermissionTimer);
+          intermissionTimer = setTimeout(() => {
+            if (isPlaying) {
+              statusBanner.textContent = "※ 音声：VOICEVOX / 各行をタップするとその行だけを個別に確認できます";
+              loadWork(nextIdx, true);
+            }
+          }, 1800); // 1.8秒の余韻・一拍
+          return;
         }
+
+        // 1段停止
+        stopAllAudio();
+        currentLineIndex = -1;
+        sectionNo.classList.remove("announcing");
+        seekProgressBar.style.width = "100%";
       }
 
       function pausePlayback() {
         isPlaying = false;
         speechSessionId++;
+        clearTimeout(intermissionTimer);
+        intermissionTimer = null;
+        sectionNo.classList.remove("announcing");
         playerCard.classList.remove("playing");
         if (audioObj) audioObj.pause();
         if (synth) synth.cancel();
+        statusBanner.textContent = "※ 音声：VOICEVOX / 各行をタップするとその行だけを個別に確認できます";
       }
 
       function stopAllAudio() {
         isPlaying = false;
         speechSessionId++;
+        clearTimeout(intermissionTimer);
+        intermissionTimer = null;
+        sectionNo.classList.remove("announcing");
         playerCard.classList.remove("playing");
         if (audioObj) {
           audioObj.pause();
@@ -1303,6 +1380,7 @@
         }
         if (synth) synth.cancel();
         clearLineHighlight();
+        statusBanner.textContent = "※ 音声：VOICEVOX / 各行をタップするとその行だけを個別に確認できます";
       }
 
       function highlightLine(idx) {
@@ -1336,16 +1414,19 @@
 
       // 前・次・ランダム
       prevBtn.addEventListener("click", () => {
+        clearTimeout(intermissionTimer);
         const prevIdx = (currentIndex - 1 + totalWorks) % totalWorks;
         loadWork(prevIdx, isPlaying);
       });
 
       nextBtn.addEventListener("click", () => {
+        clearTimeout(intermissionTimer);
         const nextIdx = (currentIndex + 1) % totalWorks;
         loadWork(nextIdx, isPlaying);
       });
 
       randomBtn.addEventListener("click", () => {
+        clearTimeout(intermissionTimer);
         let randIdx;
         do {
           randIdx = Math.floor(Math.random() * totalWorks);

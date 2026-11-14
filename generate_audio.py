@@ -25,6 +25,7 @@ import subprocess
 import urllib.request
 import urllib.parse
 import urllib.error
+import re
 
 # =============================================================================
 # 設定パラメータ（ここをお好みに合わせて変更できます）
@@ -36,7 +37,7 @@ VOICEVOX_URL = "http://127.0.0.1:50021"
 # 話者ID（キャラクターとスタイルの指定）
 # 例: 3=ずんだもん(ノーマル), 2=四国めたん(ノーマル), 13=青山龍星(ノーマル), 9=波音リツ(ノーマル)
 # ※話者ID一覧の調べ方は VOICEVOX_GUIDE.md を参照
-SPEAKER_ID = 3
+SPEAKER_ID = 2
 
 # 話す速度
 SPEED_ORIGINAL = 0.90      # 原文朗読の速度（古文の格調と聞き取りやすさのため少しゆったり）
@@ -46,6 +47,12 @@ SPEED_TRANSLATION = 1.00   # ざっくり訳の速度（自然な現代語の会
 PAUSE_BETWEEN_LINES = 0.35 # 行と行の間の無音時間（秒）
 PRE_SILENCE = 0.20         # 発声開始前の無音時間（秒）
 POST_SILENCE = 0.30        # 発声終了後の無音時間（秒）
+
+# 段数アナウンスの設定（冒頭で「第〇段」を読み上げる設定）
+ANNOUNCE_SECTION = True          # 原文朗読の冒頭で段数（例:「第五十二段」）を読み上げるか
+INCLUDE_TITLE_IN_ANNOUNCE = False  # 段数に加えてタイトルも読み上げるか（例:「第五十二段、仁和寺にある法師」）
+PAUSE_AFTER_ANNOUNCE = 0.85      # 段数アナウンスの後の無音時間（秒・一拍の間）
+ANNOUNCE_IN_TRANSLATION = False  # ざっくり訳の冒頭でも段数を読むか（通常は原文冒頭のみで十分です）
 
 # 出力先ディレクトリ・データファイル
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -107,8 +114,43 @@ def synthesize_audio(query_data, speaker_id):
     data_bytes = json.dumps(query_data).encode("utf-8")
     
     req = urllib.request.Request(url, data=data_bytes, method="POST", headers={"Content-Type": "application/json"})
-    with urllib.request.urlopen(req, timeout=60) as resp:
+    with urllib.request.urlopen(req, timeout=120) as resp:
         return resp.read()
+
+
+def split_long_text(text, max_len=120):
+    """長文を句読点で自然な長さに分割する（VOICEVOXのタイムアウト防止と自然な息継ぎ）"""
+    if not text or len(text) <= max_len:
+        return [text]
+    sentences = re.split(r'(?<=[。！？\n])', text)
+    chunks = []
+    cur = ""
+    for s in sentences:
+        if not s:
+            continue
+        if len(cur) + len(s) <= max_len:
+            cur += s
+        else:
+            if cur:
+                chunks.append(cur)
+            if len(s) > max_len:
+                comma_sub = re.split(r'(?<=[、，])', s)
+                cur_comma = ""
+                for cs in comma_sub:
+                    if not cs:
+                        continue
+                    if len(cur_comma) + len(cs) <= max_len:
+                        cur_comma += cs
+                    else:
+                        if cur_comma:
+                            chunks.append(cur_comma)
+                        cur_comma = cs
+                cur = cur_comma
+            else:
+                cur = s
+    if cur:
+        chunks.append(cur)
+    return chunks if chunks else [text]
 
 
 def make_silence_wav(duration_sec, framerate=24000, sampwidth=2, nchannels=1):
@@ -117,11 +159,57 @@ def make_silence_wav(duration_sec, framerate=24000, sampwidth=2, nchannels=1):
     return b"\x00" * (num_frames * sampwidth * nchannels)
 
 
-def concatenate_wav_data(wav_data_list, pause_sec=0.35):
+def get_section_announcement_text(no, title=""):
+    """
+    段数アナウンスの読み上げテキスト（ひらがな）を生成する
+    例:
+      no=0   -> "じょだん。"
+      no=7   -> "だいななだん。"
+      no=19  -> "だいじゅうきゅうだん。"
+      no=52  -> "だいごじゅうにだん。"
+      no=89  -> "だいはちじゅうきゅうだん。"
+      no=92  -> "だいきゅうじゅうにだん。"
+      no=109 -> "だいひゃくきゅうだん。"
+      no=137 -> "だいひゃくさんじゅうななだん。"
+      no=150 -> "だいひゃくごじゅうだん。"
+      no=155 -> "だいひゃくごじゅうごだん。"
+    """
+    if no == 0:
+        ann = "じょだん。"
+    else:
+        digits = ["", "いち", "に", "さん", "よん", "ご", "ろく", "なな", "はち", "きゅう"]
+        h = no // 100
+        t = (no % 100) // 10
+        o = no % 10
+
+        parts = ["だい"]
+        if h == 1:
+            parts.append("ひゃく")
+        elif h == 2:
+            parts.append("にひゃく")
+
+        if t == 1:
+            parts.append("じゅう")
+        elif t > 1:
+            parts.append(digits[t] + "じゅう")
+
+        if o > 0:
+            parts.append(digits[o])
+
+        parts.append("だん。")
+        ann = "".join(parts)
+
+    if INCLUDE_TITLE_IN_ANNOUNCE and title:
+        clean_title = title.rstrip("。、 ")
+        return f"{ann} {clean_title}。"
+    return ann
+
+
+def concatenate_wav_data(wav_data_list, pause_sec=0.35, pauses=None):
     """複数のWAVバイナリを無音を挟んで結合する"""
     if not wav_data_list:
         return None
-    if len(wav_data_list) == 1 and pause_sec == 0:
+    if len(wav_data_list) == 1 and (pauses is None or len(pauses) == 0):
         return wav_data_list[0]
     
     frames_list = []
@@ -137,8 +225,10 @@ def concatenate_wav_data(wav_data_list, pause_sec=0.35):
                 nchannels = wf.getnchannels()
                 frames = wf.readframes(wf.getnframes())
                 frames_list.append(frames)
-                if idx < len(wav_data_list) - 1 and pause_sec > 0:
-                    frames_list.append(make_silence_wav(pause_sec, framerate, sampwidth, nchannels))
+                if idx < len(wav_data_list) - 1:
+                    cur_pause = pauses[idx] if (pauses is not None and idx < len(pauses)) else pause_sec
+                    if cur_pause > 0:
+                        frames_list.append(make_silence_wav(cur_pause, framerate, sampwidth, nchannels))
     
     out_bio = io.BytesIO()
     with wave.open(out_bio, "wb") as out_wf:
@@ -255,6 +345,10 @@ def main():
         if a.isdigit():
             specified_secs.append(int(a))
     
+    # 特定の段番号が指定された場合は、作り直しを意図しているため自動的に上書き再生成モードにする
+    if specified_secs:
+        force_all = True
+    
     os.makedirs(AUDIO_DIR, exist_ok=True)
     dataset = load_dataset()
     works = dataset.get("works", [])
@@ -296,13 +390,31 @@ def main():
         else:
             print(f"  [生成中] 原文朗読（発音表記・速度{SPEED_ORIGINAL}x）...")
             wav_chunks = []
+            chunk_pauses = []
+            
+            # 冒頭の段数アナウンス
+            if ANNOUNCE_SECTION:
+                ann_text = get_section_announcement_text(no, title)
+                print(f"    [段数アナウンス] 「{ann_text}」")
+                ann_query = create_audio_query(ann_text, SPEAKER_ID, SPEED_ORIGINAL)
+                ann_bytes = synthesize_audio(ann_query, SPEAKER_ID)
+                wav_chunks.append(ann_bytes)
+                chunk_pauses.append(PAUSE_AFTER_ANNOUNCE)
+
             for l_idx, line in enumerate(lines):
                 text_to_read = line.get("yomi") or line.get("text")
-                query = create_audio_query(text_to_read, SPEAKER_ID, SPEED_ORIGINAL)
-                w_bytes = synthesize_audio(query, SPEAKER_ID)
-                wav_chunks.append(w_bytes)
+                chunks_to_synth = split_long_text(text_to_read)
+                for sc in chunks_to_synth:
+                    if not sc.strip():
+                        continue
+                    query = create_audio_query(sc, SPEAKER_ID, SPEED_ORIGINAL)
+                    w_bytes = synthesize_audio(query, SPEAKER_ID)
+                    wav_chunks.append(w_bytes)
+                    chunk_pauses.append(0.20)
+                if chunk_pauses:
+                    chunk_pauses[-1] = PAUSE_BETWEEN_LINES
             
-            combined_wav = concatenate_wav_data(wav_chunks, pause_sec=PAUSE_BETWEEN_LINES)
+            combined_wav = concatenate_wav_data(wav_chunks, pauses=chunk_pauses)
             duration_sec = get_wav_duration_seconds(combined_wav)
             dur_str = format_duration(duration_sec)
             
@@ -332,15 +444,31 @@ def main():
         else:
             print(f"  [生成中] ざっくり訳朗読（現代語・速度{SPEED_TRANSLATION}x）...")
             wav_chunks = []
+            chunk_pauses = []
+
+            if ANNOUNCE_IN_TRANSLATION:
+                ann_text = get_section_announcement_text(no, title)
+                ann_query = create_audio_query(ann_text, SPEAKER_ID, SPEED_TRANSLATION)
+                ann_bytes = synthesize_audio(ann_query, SPEAKER_ID)
+                wav_chunks.append(ann_bytes)
+                chunk_pauses.append(PAUSE_AFTER_ANNOUNCE)
+
             for l_idx, line in enumerate(lines):
                 text_to_read = line.get("ja")
                 if not text_to_read:
                     continue
-                query = create_audio_query(text_to_read, SPEAKER_ID, SPEED_TRANSLATION)
-                w_bytes = synthesize_audio(query, SPEAKER_ID)
-                wav_chunks.append(w_bytes)
+                chunks_to_synth = split_long_text(text_to_read)
+                for sc in chunks_to_synth:
+                    if not sc.strip():
+                        continue
+                    query = create_audio_query(sc, SPEAKER_ID, SPEED_TRANSLATION)
+                    w_bytes = synthesize_audio(query, SPEAKER_ID)
+                    wav_chunks.append(w_bytes)
+                    chunk_pauses.append(0.20)
+                if chunk_pauses:
+                    chunk_pauses[-1] = PAUSE_BETWEEN_LINES
             
-            combined_wav = concatenate_wav_data(wav_chunks, pause_sec=PAUSE_BETWEEN_LINES)
+            combined_wav = concatenate_wav_data(wav_chunks, pauses=chunk_pauses)
             duration_sec = get_wav_duration_seconds(combined_wav)
             dur_str = format_duration(duration_sec)
             

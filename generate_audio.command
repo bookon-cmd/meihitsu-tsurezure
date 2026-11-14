@@ -20,7 +20,25 @@ if ! command -v python3 &> /dev/null; then
     exit 1
 fi
 
-python3 generate_audio.py "$@"
+if [ $# -eq 0 ]; then
+    echo "実行モードを選択してください:"
+    echo "  1: まだ作られていない音声のみ生成（未生成分のみ）"
+    echo "  2: すべて上書き再生成（ナレーターや設定を変更したとき）"
+    echo "  3: 特定の段だけ作り直す（テキスト修正後のピンポイント上書き）"
+    read -p "番号を入力してください (1, 2, 3) [初期値: 1]: " mode
+    echo ""
+    if [ "$mode" = "2" ]; then
+        python3 generate_audio.py --force
+    elif [ "$mode" = "3" ]; then
+        read -p "作り直したい段番号を入力してください（例: 52）: " sec_num
+        echo ""
+        python3 generate_audio.py "$sec_num"
+    else
+        python3 generate_audio.py
+    fi
+else
+    python3 generate_audio.py "$@"
+fi
 
 echo ""
 read -p "処理が完了しました。Enterキーを押すとこのウィンドウを閉じます..."
